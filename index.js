@@ -1,5 +1,5 @@
 const express = require('express');
-const cors = require ('cors');
+const cors = require('cors');
 require('dotenv').config();
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const app = express()
@@ -27,10 +27,26 @@ async function run() {
 
     const roommateCollection = client.db('roommateDB').collection('roommates')
 
-    app.post('/roommates', async(req, res) =>{
+    app.get('/roommates', async (req, res) => {
+      const result = await roommateCollection.find().toArray();
+      res.send(result);
+    })
+
+    app.post('/roommates', async (req, res) => {
       const newRoommate = req.body;
       console.log(newRoommate);
       const result = await roommateCollection.insertOne(newRoommate);
+      res.send(result);
+    });
+
+    // available based get feature post
+
+    app.get('/roommates/available', async (req, res) => {
+      const limit = parseInt(req.query.limit) || 6;
+      const result = await roommateCollection
+        .find({ availability: "available" })
+        .limit(limit)
+        .toArray();
       res.send(result);
     });
 
