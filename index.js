@@ -43,7 +43,7 @@ async function run() {
       res.send(result);
     });
 
-    // GET /roommates/mylistings based email
+    // get method for mylistings page based email
     app.get('/roommates/mylistings', async (req, res) => {
       const email = req.query.email;
       const result = await roommateCollection
@@ -66,6 +66,13 @@ async function run() {
       const newRoommate = req.body;
       console.log(newRoommate);
       const result = await roommateCollection.insertOne(newRoommate);
+      res.send(result);
+    });
+
+    // delete method added for my listing delete button
+    app.delete('/roommates/:id', async (req, res) => {
+      const id = req.params.id;
+      const result = await roommateCollection.deleteOne({ _id: new ObjectId(id) });
       res.send(result);
     });
 
