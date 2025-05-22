@@ -27,30 +27,13 @@ async function run() {
 
     const roommateCollection = client.db('roommateDB').collection('roommates')
 
-    // for all listing get based id
+    // for all roommate listing get based id
     app.get('/roommates', async (req, res) => {
       const result = await roommateCollection.find().toArray();
       res.send(result);
     })
 
-    // for roommate details page get based id
-    app.get('/roommates/:id', async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
-      const result = await roommateCollection.findOne(query);
-      res.send(result);
-    });
-    
-    // for add to find roommate page post data
-    app.post('/roommates', async (req, res) => {
-      const newRoommate = req.body;
-      console.log(newRoommate);
-      const result = await roommateCollection.insertOne(newRoommate);
-      res.send(result);
-    });
-
     // available based get feature roommate for homepage
-
     app.get('/roommates/available', async (req, res) => {
       const limit = parseInt(req.query.limit) || 6;
       const result = await roommateCollection
@@ -59,6 +42,34 @@ async function run() {
         .toArray();
       res.send(result);
     });
+
+    // GET /roommates/mylistings based email
+    app.get('/roommates/mylistings', async (req, res) => {
+      const email = req.query.email;
+      const result = await roommateCollection
+        .find({ email: email })
+        .toArray();
+      res.send(result);
+    });
+
+
+    // for roommate details page get based id
+    app.get('/roommates/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await roommateCollection.findOne(query);
+      res.send(result);
+    });
+
+    // for add to find roommate page post data
+    app.post('/roommates', async (req, res) => {
+      const newRoommate = req.body;
+      console.log(newRoommate);
+      const result = await roommateCollection.insertOne(newRoommate);
+      res.send(result);
+    });
+
+
 
 
 
