@@ -26,6 +26,7 @@ async function run() {
     await client.connect();
 
     const roommateCollection = client.db('roommateDB').collection('roommates')
+    const likesCollection = client.db('roommateDB').collection('likes');
 
     // for all roommate listing get based id
     app.get('/roommates', async (req, res) => {
@@ -97,6 +98,36 @@ async function run() {
       );
       res.send(result);
 
+    });
+
+     // new patch route to handle like logic with tracking user email
+    app.patch('/roommates/:id/like-tracked', async (req, res) => {
+      const { id } = req.params;
+      const { userEmail } = req.body;
+
+      // check if user already liked this roommate
+      const existingLike = await likesCollection.findOne({ listingId: id, userEmail });
+
+      if (existingLike) {
+        return res.status(200).send({ liked: true, message: "Already liked" });
+      }
+
+      // add to likes collection
+      await likesCollection.insertOne({ listingId: id, userEmail });
+
+      // increment like count in roommates collection
+      const result = await roommateCollection.updateOne(
+        { _id: new ObjectId(id) },
+        { $inc: { likes: 1 } }
+      );
+
+      res.send({ liked: true, result });
+    });
+
+    app.get('/roommates/:id/liked/:userEmail', async (req, res) => {
+      const { id, userEmail } = req.params;
+      const like = await likesCollection.findOne({ listingId: id, userEmail });
+      res.send({ liked: !!like });
     });
 
 
