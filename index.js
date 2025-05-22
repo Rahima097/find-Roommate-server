@@ -76,8 +76,16 @@ async function run() {
       res.send(result);
     });
 
-
-
+    // update method added for my listing update button"
+    app.put('/roommates/:id', async (req, res) => {
+      const { id } = req.params;
+      const updatedData = req.body;
+      const result = await roommateCollection.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: updatedData }
+      );
+      res.send(result);
+    });
 
 
     // Send a ping to confirm a successful connection
