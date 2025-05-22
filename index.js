@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express()
 const port = process.env.PORT || 3000
 
@@ -27,11 +27,21 @@ async function run() {
 
     const roommateCollection = client.db('roommateDB').collection('roommates')
 
+    // for all listing get based id
     app.get('/roommates', async (req, res) => {
       const result = await roommateCollection.find().toArray();
       res.send(result);
     })
 
+    // for roommate details page get based id
+    app.get('/roommates/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await roommateCollection.findOne(query);
+      res.send(result);
+    });
+    
+    // for add to find roommate page post data
     app.post('/roommates', async (req, res) => {
       const newRoommate = req.body;
       console.log(newRoommate);
@@ -39,7 +49,7 @@ async function run() {
       res.send(result);
     });
 
-    // available based get feature post
+    // available based get feature roommate for homepage
 
     app.get('/roommates/available', async (req, res) => {
       const limit = parseInt(req.query.limit) || 6;
