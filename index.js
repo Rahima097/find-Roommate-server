@@ -76,7 +76,7 @@ async function run() {
       res.send(result);
     });
 
-    // update method added for my listing update button"
+    // update put method added for my listing update button"
     app.put('/roommates/:id', async (req, res) => {
       const { id } = req.params;
       const updatedData = req.body;
@@ -85,6 +85,18 @@ async function run() {
         { $set: updatedData }
       );
       res.send(result);
+    });
+
+    // added patch method for handle like for details page
+    app.patch('/roommates/:id/like', async (req, res) => {
+      const { id } = req.params;
+      const { likes } = req.body;
+      const result = await roommateCollection.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: { likes } }
+      );
+      res.send(result);
+
     });
 
 
