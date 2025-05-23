@@ -23,7 +23,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
 
     const roommateCollection = client.db('roommateDB').collection('roommates')
     const likesCollection = client.db('roommateDB').collection('likes');
@@ -100,22 +100,27 @@ async function run() {
 
     });
 
-     // new patch route to handle like logic with tracking user email
+    // Handle like action with user email tracking
     app.patch('/roommates/:id/like-tracked', async (req, res) => {
       const { id } = req.params;
       const { userEmail } = req.body;
 
-      // check if user already liked this roommate
-      const existingLike = await likesCollection.findOne({ listingId: id, userEmail });
+      // Check if the user is trying to like their own listing
+      const roommate = await roommateCollection.findOne({ _id: new ObjectId(id) });
+      if (roommate.email === userEmail) {
+        return res.status(400).send({ message: "You cannot like your own listing." });
+      }
 
+      // Check if the user has already liked this listing
+      const existingLike = await likesCollection.findOne({ listingId: id, userEmail });
       if (existingLike) {
         return res.status(200).send({ liked: true, message: "Already liked" });
       }
 
-      // add to likes collection
+      // Add to likes collection
       await likesCollection.insertOne({ listingId: id, userEmail });
 
-      // increment like count in roommates collection
+      // Increment like count in roommates collection
       const result = await roommateCollection.updateOne(
         { _id: new ObjectId(id) },
         { $inc: { likes: 1 } }
@@ -124,16 +129,13 @@ async function run() {
       res.send({ liked: true, result });
     });
 
+    // Check if a user has liked a specific listing
     app.get('/roommates/:id/liked/:userEmail', async (req, res) => {
       const { id, userEmail } = req.params;
       const like = await likesCollection.findOne({ listingId: id, userEmail });
       res.send({ liked: !!like });
     });
-
-
-    // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
