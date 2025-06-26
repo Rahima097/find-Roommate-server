@@ -27,6 +27,7 @@ async function run() {
 
     const roommateCollection = client.db('roommateDB').collection('roommates')
     const likesCollection = client.db('roommateDB').collection('likes');
+    const contactCollection = client.db('roommateDB').collection('contacts');
 
     // for all roommate listing get based id
     app.get('/roommates', async (req, res) => {
@@ -135,7 +136,45 @@ async function run() {
       const like = await likesCollection.findOne({ listingId: id, userEmail });
       res.send({ liked: !!like });
     });
-    
+
+    // Contact form endpoint
+    app.post('/contact', async (req, res) => {
+      try {
+        const contactMessage = {
+          ...req.body,
+          createdAt: new Date(),
+          status: 'unread'
+        };
+        const result = await contactCollection.insertOne(contactMessage);
+        res.status(200).send({
+          success: true,
+          message: 'Contact message sent successfully',
+          id: result.insertedId
+        });
+      } catch (error) {
+        console.error('Error saving contact message:', error);
+        res.status(500).send({
+          success: false,
+          message: 'Failed to send message'
+        });
+      }
+    });
+
+    // Dashboard stats endpoints
+    app.get('/roommates/count', async (req, res) => {
+      const count = await roommateCollection.countDocuments();
+      res.send({ count });
+    });
+
+    app.get('/roommates/user/:email', async (req, res) => {
+      const email = req.params.email;
+      const result = await roommateCollection
+        .find({ email: email })
+        .sort({ createdAt: -1 })
+        .toArray();
+      res.send(result);
+    });
+
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
